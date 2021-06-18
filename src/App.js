@@ -8,6 +8,7 @@ import Login from "./components/Login";
 import EsqueciSenha from "./components/EsqueciSenha";
 import EditarConta from "./components/EditarConta";
 import TopMenu from "./components/TopMenu";
+import CadastroEntidades from "./components/CadastroEntidades"
 
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
                     <Route path="/login" component={Login}/>
                     <Route path="/resetarsenha" component={EsqueciSenha}/>
                     <Route path="/editarconta" component={EditarConta}/>
+                    <Route path="/adicionarentidade" component={CadastroEntidades}/>
                   </Switch>
             </div>
           </Container>
