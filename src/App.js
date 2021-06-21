@@ -17,15 +17,15 @@ function App() {
       <AuthProvider>
         <Router>
           <TopMenu/>
-          <Container className="d-flex align-items-center justify-content-center" style={{minHeight:"100vh"}}>
-            <div className="w-100" style={{maxWidth:"400px"}}>
+          <Container className="d-flex align-items-top justify-content-center" style={{minHeight:"100vh"}}>
+            <div className="w-100" >
                   <Switch>
                     <Route exact path="/" component={Dashboard}/>
                     <Route path="/signup" component={Signup}/>
                     <Route path="/login" component={Login}/>
                     <Route path="/resetarsenha" component={EsqueciSenha}/>
                     <Route path="/editarconta" component={EditarConta}/>
-                    <Route path="/adicionarentidade" component={CadastroEntidades}/>
+                    <Route path="/cadastrarentidade" component={CadastroEntidades}/>
                   </Switch>
             </div>
           </Container>

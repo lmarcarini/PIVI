@@ -1,39 +1,91 @@
-
-import React from 'react'
+import React from 'react';
+import {db, storage} from '../firebase';
 import {Button, Form, FormGroup} from 'react-bootstrap';
+import {useAuth} from '../context/AuthContext'
+import { useState } from 'react';
 
 
 function CadastroEntidades() {
+  const {currentUser}=useAuth();
+  const [loading,setLoading]=useState(false)
+
+  async function handleSubmit (e){
+    e.preventDefault()
+    setLoading(true)
+    let form=e.target
+    let entidade={
+      nome: form.nome.value,
+      nomeExibicao: form.nomeExibicao.value,
+      cnpj: form.cnpj.value,
+      presidente: form.presidente.value,
+      publico:{
+        criancas: form.criancas.checked,
+        adolescentes: form.adolescentes.checked,
+        adultos: form.adultos.checked,
+        idosos: form.idosos.checked,
+        pcd: form.pcd.checked
+      },
+      periodo: form.periodo.value,
+      endereco:{
+        rua: form.rua.value,
+        bairro: form.bairro.value,
+        cep: form.cep.value,
+        numero: form.numero.value
+      },
+      contato:{
+        telefone:form.telefone.value,
+        email:form.email.value,
+        facebook:form.facebook.value,
+        instagram:form.instagram.value,
+        youtube:form.youtube.value,
+      },
+      user: currentUser.uid
+    }
+    try{
+      let {id} = await db.collection("entidades").add({entidade})
+      if(form.foto.files[0]){
+        let uploadTest=storage.ref()
+        .child("imgEntidades/"+id+form.foto.files[0].name.match(/\..*$/))
+        .put(form.foto.files[0])
+        uploadTest.then(snapshot=>{
+          snapshot.ref.getDownloadURL().then(downloadUrl=>
+            db.collection("entidades").doc(id).update({downloadUrl: downloadUrl})
+          )
+        })
+      }
+    }catch(error){
+      console.log(error)
+    }
+
+    setLoading(false)
+  }
+
   return (
-    <Form className="defaut">
+    <Form className="defaut" onSubmit={handleSubmit}>
       <h1 className="text-center">PIVI</h1>
       <h2 className="text-center">Cadastrar Entidade</h2>
-      <h3 className="text-center"><a href="Editar-cadastro-entidade.js">Editar cadastro existente</a></h3>
-
-      <i className="text-center">Itens com "*" são de preenchimento obrigatório</i>
-
         <FormGroup>
-          <Form.Label class="mt-3"><b>Nome da entidade*</b></Form.Label>
-          <Form.Control type="text" placeholder="Nome da entidade"/>
+          <Form.Label className="mt-3"><b>Nome da entidade*</b></Form.Label>
+          <Form.Control type="text" placeholder="Nome da entidade" name="nome" required/>
         </FormGroup>
 
         <FormGroup>
           <Form.Label><b>Nome da entidade a ser exibido na plataforma*</b></Form.Label>
-          <Form.Control type="text" placeholder="Nome de preferência"/>
+          <Form.Control type="text" placeholder="Nome de preferência" name="nomeExibicao" required/>
         </FormGroup>
 
         <FormGroup>
           <Form.Label><b>CNPJ*</b></Form.Label>
-          <Form.Control type="text" placeholder="CNPJ"/>
+          <Form.Control type="text" placeholder="CNPJ" name="cnpj" required/>
         </FormGroup>
 
         <FormGroup>
           <Form.Label><b>Nome do(a) presidente*</b></Form.Label>
-          <Form.Control type="text" placeholder="Nome do(a) presidente"/>
+          <Form.Control type="text" placeholder="Nome do(a) presidente" name="presidente" required/>
         </FormGroup>
 
-        <FormGroup class="mt-3">
-          <Form.Label><b>Tipo de público atendido*</b></Form.Label>
+        <FormGroup className="mt-3">
+          <Form.Label><b>Tipo de público atendido</b></Form.Label>
           <Form.Check type="checkbox" id="criancas" name="criancas" label="Crianças"/>
           <Form.Check type="checkbox" id="adolescentes" name="adolescentes" label="Adolescentes"/>
           <Form.Check type="checkbox" id="adultos" name="adultos" label="Adultos"/>
@@ -41,79 +93,74 @@ function CadastroEntidades() {
           <Form.Check type="checkbox" id="pcd" name="pcd" label="Pessoas com deficiências"/>
         </FormGroup>
 
-        <FormGroup class="mt-3">
-          <Form.Label><b>Tipo de período em que atende*</b></Form.Label>
-          <Form.Check type="radio" id="periodounico" name="periodo" label="Um período"/>
-          <Form.Check type="radio" id="periodointegral" name="periodo" label="Período integral"/>
+        <FormGroup className="mt-3" required>
+          <Form.Label><b>Tipo de período em que atende</b></Form.Label>
+          <Form.Check type="radio" id="periodounico" name="periodo" label="Um período" value="unico"/>
+          <Form.Check type="radio" id="periodointegral" name="periodo" label="Período integral" value="integral"/>
         </FormGroup>
         
-        <Form.Label class="mt-3"><h4>Endereço</h4></Form.Label>
+        <Form.Label className="mt-3"><h4>Endereço</h4></Form.Label>
         
         <FormGroup>
         <Form.Label><b>Rua*</b></Form.Label>
-        <Form.Control type="text" placeholder="Rua"/>
+        <Form.Control type="text" placeholder="Rua" name="rua" required/>
         </FormGroup>
 
         <FormGroup>
         <Form.Label><b>Número*</b></Form.Label>
-        <Form.Control type="text" placeholder="Número"/>
+        <Form.Control type="text" placeholder="Número" name="numero" required/>
         </FormGroup>
 
         <FormGroup>
         <Form.Label><b>Bairro*</b></Form.Label>
-        <Form.Control type="text" placeholder="Bairro"/>
+        <Form.Control type="text" placeholder="Bairro" name="bairro" required/>
         </FormGroup>
 
         <FormGroup>
         <Form.Label><b>CEP*</b></Form.Label>
-        <Form.Control type="text" placeholder="CEP"/>
+        <Form.Control type="text" placeholder="CEP" name="cep" required/>
         </FormGroup>
 
-        <Form.Label class="mt-3"><h4>Contato</h4></Form.Label>
+        <Form.Label className="mt-3"><h4>Contato</h4></Form.Label>
         
         <FormGroup>
         <Form.Label><b>Telefone*</b></Form.Label>
-        <Form.Control type="tel" placeholder="Telefone"/>
+        <Form.Control type="tel" placeholder="Telefone" name="telefone" required/>
         </FormGroup>
 
         <FormGroup>
         <Form.Label><b>E-mail para contato*</b></Form.Label>
-        <Form.Control type="email" placeholder="E-mail para contato"/>
+        <Form.Control type="email" placeholder="E-mail para contato" name="email" required/>
         </FormGroup>
 
         <FormGroup>
         <Form.Label><b>Link do site da entidade (se tiver)</b></Form.Label>
-        <Form.Control type="url" placeholder="Insira o link"/>
+        <Form.Control type="url" placeholder="Insira o link" name="site"/>
         </FormGroup>
 
         <FormGroup>
         <Form.Label><b>Link da página ou pefil no Facebook (se tiver)</b></Form.Label>
-        <Form.Control type="url" placeholder="Insira o link"/>
+        <Form.Control type="url" placeholder="Insira o link" name="facebook"/>
         </FormGroup>
         
         <FormGroup>
         <Form.Label><b>Link da página ou pefil no Instagram (se tiver)</b></Form.Label>
-        <Form.Control type="url" placeholder="Insira o link"/>
+        <Form.Control type="url" placeholder="Insira o link" name="instagram"/>
         </FormGroup>
 
         <FormGroup>
         <Form.Label><b>Link do canal do Youtube (se tiver)</b></Form.Label>
-        <Form.Control type="url" placeholder="Insira o link"/>
+        <Form.Control type="url" placeholder="Insira o link" name="youtube"/>
         </FormGroup>
 
-        <FormGroup>
-        <Form.Label class="mt-3"><b>Foto para perfil (resolução recomendada 480px x 480px)</b></Form.Label>
-        <Form.Control type="file" id="foto-perfil"/>
-        </FormGroup>
-
-        <FormGroup class="mt-3">
-        <Form.Label class="mt-3"><b>Foto ilustrativa da entidade (resolução recomendada: 1080px x 720px)</b></Form.Label>
-        <Form.Control type="file" id="foto-ilustrativa"/>
+        <FormGroup className="mt-3">
+        <Form.Label className="mt-3"><b>Imagem ilustrativa da entidade (resolução recomendada: 1080px x 720px)</b></Form.Label>
+        <Form.Control type="file" id="foto-ilustrativa" name="foto"/>
         </FormGroup>
         
-        <div class="mt-3">
-        <Button class="btn btn-primary btn-lg mt-3" type="submit">Finalizar cadastro</Button><br></br>
-        <Form.Control class="btn btn-primary btn-lg mt-3" type="reset" value="Limpar campos"></Form.Control>
+        <div className="mt-3">
+        <Button disabled={loading} className="btn btn-primary btn-lg mt-3" type="submit">Finalizar cadastro</Button><br></br>
+        <Form.Control className="btn btn-primary btn-lg mt-3" type="reset" value="Limpar campos"></Form.Control>
         </div>
        </Form>
   );
