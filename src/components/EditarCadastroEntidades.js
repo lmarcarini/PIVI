@@ -1,164 +1,231 @@
+import React, { useEffect } from 'react';
+import {db, storage} from '../firebase';
+import {Button, Form, FormGroup} from 'react-bootstrap';
+import { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 
-import './App.css';
-import {Button, Form, FormGroup, Label, Input} from 'reactstrap';
+function useQuery() {
+  return new URLSearchParams(useLocation().search);
+}
 
+function EditarCadastroEntidades() {
+  let query = useQuery();
+  const [id,setId]=useState("")
+  const [idExists,setIdExists]=useState(false)
+  const [loading,setLoading]=useState(false)
+  const [entidade,setEntidade]=useState({
+    nome: "",
+    nomeExibicao: "",
+    cnpj: "",
+    presidente: "",
+    descricao: "",
+    contribuicao: "",
+    publico:{
+      criancas: "",
+      adolescentes: "",
+      adultos: "",
+      idosos: "",
+      pcd: ""
+    },
+    periodo: "",
+    endereco:{
+      rua: "",
+      bairro: "",
+      cep: "",
+      numero: ""
+    },
+    contato:{
+      telefone:"",
+      email:"",
+      facebook:"",
+      instagram:"",
+      youtube:"",
+    }
+  })
 
-function App() {
+  useEffect(()=>{
+    let id=query.get("id")
+    
+    if(id) {
+      setId(id)
+      db.collection("entidades").doc(id).get().then(doc=>{
+      if(doc.exists) {
+        setIdExists(true)
+        setEntidade(doc.data())
+      }
+    })}
+  },[query])
+
+  async function handleSubmit (e){
+    e.preventDefault()
+    setLoading(true)
+    let form=e.target
+    let entidadeEnvio={
+      nome: form.nome.value,
+      nomeExibicao: form.nomeExibicao.value,
+      cnpj: form.cnpj.value,
+      presidente: form.presidente.value,
+      descricao: form.descricao.value,
+      contribuicao: form.contribuicao.value,
+      publico:{
+        criancas: form.criancas.checked,
+        adolescentes: form.adolescentes.checked,
+        adultos: form.adultos.checked,
+        idosos: form.idosos.checked,
+        pcd: form.pcd.checked
+      },
+      periodo: form.periodo.value,
+      endereco:{
+        rua: form.rua.value,
+        bairro: form.bairro.value,
+        cep: form.cep.value,
+        numero: form.numero.value
+      },
+      contato:{
+        telefone:form.telefone.value,
+        site:form.site.value,
+        email:form.email.value,
+        facebook:form.facebook.value,
+        instagram:form.instagram.value,
+        youtube:form.youtube.value,
+      }
+    }
+    try{
+      db.collection("entidades").doc(id).update(entidadeEnvio).then(
+        alert("Alterações feitas com sucesso!")
+      )
+      if(form.foto.files[0]){
+        await storage.ref().child(entidade.urlPath).delete()
+        let urlPath="imgEntidades/"+id+form.foto.files[0].name.match(/\..*$/)
+        entidadeEnvio.urlPath=urlPath
+        setEntidade(entidadeEnvio)
+        const uploadTest=await storage.ref()
+          .child(urlPath)
+          .put(form.foto.files[0])
+        const downloadUrl=await uploadTest.ref.getDownloadURL()
+        await db.collection("entidades").doc(id).update({downloadUrl: downloadUrl, urlPath: urlPath})
+      }
+    }catch(error){
+      console.log(error)
+    }
+
+    setLoading(false)
+  }
+
   return (
-    <Form className="defaut">
-      <h1 className="text-center">PIVI</h1>
-      <h2 className="text-center">Editar cadastro da entidade</h2>
-      
+    <>
+    {idExists && <Form className="defaut" onSubmit={handleSubmit}>
+      <h2 className="text-center">Cadastrar Entidade</h2>
         <FormGroup>
-        <Label class="mt-3"><b>Aterar nome</b></Label>
-        <Input type="text" placeholder={Nome}></Input>
-        </FormGroup>
-
-        <FormGroup>
-        <Label><b>Alterar CNPJ</b></Label>
-        <Input type="text" placeholder={Cnpj}/>
+          <Form.Label className="mt-3"><b>Nome da entidade*</b></Form.Label>
+          <Form.Control type="text" placeholder="Nome da entidade" name="nome" defaultValue={entidade.nome|| ""} required/>
         </FormGroup>
 
         <FormGroup>
-        <Label><b>Alterar nome do(a) presidente</b></Label>
-        <Input type="text" placeholder={Presidente}/>
+          <Form.Label><b>Nome da entidade a ser exibido na plataforma*</b></Form.Label>
+          <Form.Control type="text" placeholder="Nome de preferência" name="nomeExibicao" defaultValue={entidade.nomeExibicao || ""} required/>
         </FormGroup>
 
-        <FormGroup class="mt-3">
-        <Label><b>Alterar tipo de público atendido</b></Label><br></br>
-        <Input type="checkbox"id="crianças" name="tipo" value="crianças"/>
-        <Label for="crianças">Crianças</Label><br></br>
-        <Input type="checkbox"id="adolescentes" name="tipo" value="adolescentes"/>
-        <Label for="adolescentes">Adolescentes</Label><br></br>
-        <Input type="checkbox"id="Idoso" name="tipo" value="idosos"/>
-        <Label for="idosos">Idosos</Label><br></br>
-        <Input type="checkbox"id="PCD" name="tipo" value="PCD"/>
-        <Label for="PCD">Pessoas com deficiências</Label><br></br>
+        <FormGroup>
+          <Form.Label><b>CNPJ*</b></Form.Label>
+          <Form.Control type="text" placeholder="CNPJ" name="cnpj" defaultValue={entidade.cnpj || ""} required/>
         </FormGroup>
 
-        <FormGroup class="mt-3">
-        <Label><b>Alterar tipo de período em que atende</b></Label><br></br>
-        <Input type="checkbox"id="Um-Periodo" name="tipo" value="Um-Periodo"/>
-        <Label for="Um-Periodo">Um período</Label><br></br>
-        <Input type="checkbox"id="Periodo-Integral" name="tipo" value="Periodo-Integral"/>
-        <Label for="Periodo-Integral">Período integral</Label><br></br>
+        <FormGroup>
+          <Form.Label><b>Nome do(a) presidente*</b></Form.Label>
+          <Form.Control type="text" placeholder="Nome do(a) presidente" name="presidente" defaultValue={entidade.presidente || ""} required/>
+        </FormGroup>
+
+        <FormGroup className="mt-3">
+          <Form.Label><b>Tipo de público atendido</b></Form.Label>
+          <Form.Check type="checkbox" id="criancas" name="criancas" label="Crianças" defaultValue={entidade.publico.criancas || ""}/>
+          <Form.Check type="checkbox" id="adolescentes" name="adolescentes" label="Adolescentes" defaultValue={entidade.publico.adolescentes || ""}/>
+          <Form.Check type="checkbox" id="adultos" name="adultos" label="Adultos" defaultValue={entidade.publico.adultos || ""}/>
+          <Form.Check type="checkbox" id="idosos" name="idosos" label="Idosos" defaultValue={entidade.publico.idosos || ""}/>
+          <Form.Check type="checkbox" id="pcd" name="pcd" label="Pessoas com deficiências" defaultValue={entidade.publico.pcd || ""}/>
+        </FormGroup>
+
+        <FormGroup className="mt-3" required>
+          <Form.Label><b>Tipo de período em que atende</b></Form.Label>
+          <Form.Check type="radio" id="periodounico" name="periodo" label="Um período" value="unico"/>
+          <Form.Check type="radio" id="periodointegral" name="periodo" label="Período integral" value="integral"/>
+        </FormGroup>
+
+        <FormGroup className="mt-3">
+          <Form.Label><b>Descrição da entidade</b></Form.Label>
+          <Form.Control as="textarea" placeholder="Descreva aqui o que sua entidade faz e é." name="descricao" label="Descrição" defaultValue={entidade.descricao || ""}/>
+        </FormGroup>
+
+        <FormGroup className="mt-3">
+          <Form.Label><b>Como podem contribuir para sua entidade?</b></Form.Label>
+          <Form.Control as="textarea" placeholder="Descreva aqui como podem ajudar a sua entidade." name="contribuicao" label="Contribuição" defaultValue={entidade.contribuicao || ""}/>
         </FormGroup>
         
-        <h4 class="mt-3">Alterar endereço</h4>
+        <Form.Label className="mt-3"><h4>Endereço</h4></Form.Label>
         
         <FormGroup>
-        <Label><b>Rua</b></Label>
-        <Input type="text" placeholder={Rua}/>
+        <Form.Label><b>Rua*</b></Form.Label>
+        <Form.Control type="text" placeholder="Rua" name="rua" required defaultValue={entidade.endereco.rua || ""}/>
         </FormGroup>
 
         <FormGroup>
-        <Label><b>Número</b></Label>
-        <Input type="text" placeholder={Numero}/>
+        <Form.Label><b>Número*</b></Form.Label>
+        <Form.Control type="text" placeholder="Número" name="numero" required defaultValue={entidade.endereco.numero || ""}/>
         </FormGroup>
 
         <FormGroup>
-        <Label><b>Bairro</b></Label>
-        <Input type="text" placeholder={Bairro}/>
+        <Form.Label><b>Bairro*</b></Form.Label>
+        <Form.Control type="text" placeholder="Bairro" name="bairro" required defaultValue={entidade.endereco.bairro || ""}/>
         </FormGroup>
 
         <FormGroup>
-        <Label><b>CEP</b></Label>
-        <Input type="text" placeholder={Cep}/>
+        <Form.Label><b>CEP*</b></Form.Label>
+        <Form.Control type="text" placeholder="CEP" name="cep" required defaultValue={entidade.endereco.cep || ""}/>
         </FormGroup>
 
-        <h4 class="mt-3">Contato</h4>
+        <Form.Label className="mt-3"><h4>Contato</h4></Form.Label>
         
         <FormGroup>
-        <Label><b>Telefone</b></Label>
-        <Input type="tel" placeholder={Telefone}/>
+        <Form.Label><b>Telefone*</b></Form.Label>
+        <Form.Control type="tel" placeholder="Telefone" name="telefone" required defaultValue={entidade.contato.telefone || ""}/>
         </FormGroup>
 
         <FormGroup>
-        <Label><b>E-mail para contato</b></Label>
-        <Input type="email" placeholder={Email}/>
+        <Form.Label><b>E-mail para contato*</b></Form.Label>
+        <Form.Control type="email" placeholder="E-mail para contato" name="email" required defaultValue={entidade.contato.email || ""}/>
         </FormGroup>
 
         <FormGroup>
-        <Label><b>Link do site da entidade (se tiver)</b></Label>
-        <Input type="url" placeholder={LinkSite}/>
+        <Form.Label><b>Link do site da entidade (se tiver)</b></Form.Label>
+        <Form.Control type="url" placeholder="Insira o link" name="site" defaultValue={entidade.contato.site || ""}/>
         </FormGroup>
 
         <FormGroup>
-        <Label><b>Link da página ou pefil no Facebook (se tiver)</b></Label>
-        <Input type="url" placeholder={LinkFacebook}/>
+        <Form.Label><b>Link da página ou pefil no Facebook (se tiver)</b></Form.Label>
+        <Form.Control type="url" placeholder="Insira o link" name="facebook" defaultValue={entidade.contato.facebook || ""}/>
         </FormGroup>
         
         <FormGroup>
-        <Label><b>Link da página ou pefil no Instagram (se tiver)</b></Label>
-        <Input type="url" placeholder={LinkInstagram}/>
+        <Form.Label><b>Link da página ou pefil no Instagram (se tiver)</b></Form.Label>
+        <Form.Control type="url" placeholder="Insira o link" name="instagram" defaultValue={entidade.contato.instagram || ""}/>
         </FormGroup>
 
         <FormGroup>
-        <Label><b>Link do canal do Youtube (se tiver)</b></Label>
-        <Input type="url" placeholder={LinkYoutube}/>
+        <Form.Label><b>Link do canal do Youtube (se tiver)</b></Form.Label>
+        <Form.Control type="url" placeholder="Insira o link" name="youtube" defaultValue={entidade.contato.youtube || ""}/>
         </FormGroup>
 
-        <h4 class="mt-3">Cadastro</h4>
-
-        <FormGroup>
-        <Label><b>Nome da entidade a ser exibido na plataforma</b></Label>
-        <Input type="text" placeholder={NomePerfil}/>
-        </FormGroup>
-
-        <FormGroup>
-        <Label><b>E-mail para acessar a plataforma(Atual: {EmailLogin})</b></Label>
-        <Input type="email" placeholder="E-mail para acesso"/>
-        </FormGroup>
-
-        <Label class="mt-3"><h4>Alterar senha</h4></Label>
-
-        <FormGroup>
-        <Label><b>Senha atual</b></Label>
-        <Input type="password" placeholder="Senha atual"/>
-        </FormGroup>
-
-        <FormGroup>
-        <Label><b>Nova senha</b></Label>
-        <Input type="password" placeholder="Mínimo 8 dígitos"/>
-        </FormGroup>
-
-        <FormGroup>
-        <Label><b>Repetir senha</b></Label>
-        <Input type="password" placeholder="Confirme a senha"/>
-        </FormGroup>
-
-        <FormGroup Class="mt-3">
-        <Label Class="mt-3"><b>Foto para perfil (resolunção recomendada 480px x 480px)</b></Label>
-        <Input type="file" id="foto-perfil"/>
-        </FormGroup>
-
-        <FormGroup Class="mt-3">
-        <Label Class="mt-3"><b>Foto ilustrativa da entidade (resolução recomendada: 1080px x 720px)</b></Label>
-        <Input type="file" id="foto-ilustrativa"/>
+        <FormGroup className="mt-3">
+        <Form.Label className="mt-3"><b>Imagem ilustrativa da entidade (resolução recomendada: 1080px x 720px)</b></Form.Label>
+        <Form.Control type="file" id="foto-ilustrativa" name="foto"/>
         </FormGroup>
         
-        <div Class="mt-3">
-        <Button Class="btn btn-primary btn-lg mt-3" type="submit">Finalizar alteração</Button><br></br>
-        <Input Class="btn btn-primary btn-lg mt-3" type="reset" value="Limpar campos"></Input>
+        <div className="mt-3">
+        <Button disabled={loading} className="btn btn-primary btn-lg mt-3" type="submit">Finalizar cadastro</Button><br></br>
+        <Form.Control className="btn btn-primary btn-lg mt-3" type="reset" value="Limpar campos"></Form.Control>
         </div>
-       </Form>
+       </Form>}</>
   );
 }
 
-    var Nome = "Casa do perdão, misericórdia e ajuda de Tupã"
-    var NomePerfil = "Casa do Perdão"
-    var Cnpj = 111111111111 
-    var Presidente = "Todos nós"
-    var Rua = "rua dos bobos"
-    var Numero = 0
-    var Bairro = "Jardim de inverno"
-    var Cep = 17777777
-    var Telefone = 14999999999
-    var Email = "casadoperdao@misericordia.com"
-    var EmailLogin = "casadoperdao@social.com"
-    var LinkSite = "www.casadoperdao.com"
-    var LinkFacebook = "www.facebook.com/"
-    var LinkInstagram = "www.instagram.com/"
-    var LinkYoutube = "www.youtube.com/" 
-
-export default App;
+export default EditarCadastroEntidades;

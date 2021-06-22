@@ -18,6 +18,8 @@ function CadastroEntidades() {
       nomeExibicao: form.nomeExibicao.value,
       cnpj: form.cnpj.value,
       presidente: form.presidente.value,
+      descricao: form.descricao.value,
+      contribuicao: form.contribuicao.value,
       publico:{
         criancas: form.criancas.checked,
         adolescentes: form.adolescentes.checked,
@@ -34,6 +36,7 @@ function CadastroEntidades() {
       },
       contato:{
         telefone:form.telefone.value,
+        site:form.site.value,
         email:form.email.value,
         facebook:form.facebook.value,
         instagram:form.instagram.value,
@@ -42,16 +45,15 @@ function CadastroEntidades() {
       user: currentUser.uid
     }
     try{
-      let {id} = await db.collection("entidades").add({entidade})
+      console.log(entidade)
+      let {id} = await db.collection("entidades").add(entidade)
       if(form.foto.files[0]){
-        let uploadTest=storage.ref()
-        .child("imgEntidades/"+id+form.foto.files[0].name.match(/\..*$/))
-        .put(form.foto.files[0])
-        uploadTest.then(snapshot=>{
-          snapshot.ref.getDownloadURL().then(downloadUrl=>
-            db.collection("entidades").doc(id).update({downloadUrl: downloadUrl})
-          )
-        })
+        let urlPath="imgEntidades/"+id+form.foto.files[0].name.match(/\..*$/)
+        const uploadTest=await storage.ref()
+          .child(urlPath)
+          .put(form.foto.files[0])
+        const downloadUrl=await uploadTest.ref.getDownloadURL()
+        db.collection("entidades").doc(id).update({downloadUrl: downloadUrl, urlPath: urlPath})
       }
     }catch(error){
       console.log(error)
@@ -62,7 +64,6 @@ function CadastroEntidades() {
 
   return (
     <Form className="defaut" onSubmit={handleSubmit}>
-      <h1 className="text-center">PIVI</h1>
       <h2 className="text-center">Cadastrar Entidade</h2>
         <FormGroup>
           <Form.Label className="mt-3"><b>Nome da entidade*</b></Form.Label>
@@ -97,6 +98,16 @@ function CadastroEntidades() {
           <Form.Label><b>Tipo de período em que atende</b></Form.Label>
           <Form.Check type="radio" id="periodounico" name="periodo" label="Um período" value="unico"/>
           <Form.Check type="radio" id="periodointegral" name="periodo" label="Período integral" value="integral"/>
+        </FormGroup>
+
+        <FormGroup className="mt-3">
+          <Form.Label><b>Descrição da entidade</b></Form.Label>
+          <Form.Control as="textarea" placeholder="Descreva aqui o que sua entidade faz e é." name="descricao" label="Descrição"/>
+        </FormGroup>
+
+        <FormGroup className="mt-3">
+          <Form.Label><b>Como podem contribuir para sua entidade?</b></Form.Label>
+          <Form.Control as="textarea" placeholder="Descreva aqui como podem ajudar a sua entidade." name="contribuicao" label="Contribuição"/>
         </FormGroup>
         
         <Form.Label className="mt-3"><h4>Endereço</h4></Form.Label>

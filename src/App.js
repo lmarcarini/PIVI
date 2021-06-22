@@ -9,6 +9,9 @@ import EsqueciSenha from "./components/EsqueciSenha";
 import EditarConta from "./components/EditarConta";
 import TopMenu from "./components/TopMenu";
 import CadastroEntidades from "./components/CadastroEntidades"
+import EditarCadastroEntidades from "./components/EditarCadastroEntidades";
+import ListaEntidades from "./components/ListaEntidades";
+
 
 
 function App() {
@@ -26,6 +29,8 @@ function App() {
                     <Route path="/resetarsenha" component={EsqueciSenha}/>
                     <Route path="/editarconta" component={EditarConta}/>
                     <Route path="/cadastrarentidade" component={CadastroEntidades}/>
+                    <Route path="/editarentidade" component={EditarCadastroEntidades}/>
+                    <Route path="/minhasentidades" component={ListaEntidades}/>
                   </Switch>
             </div>
           </Container>
