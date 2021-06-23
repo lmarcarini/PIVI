@@ -3,11 +3,13 @@ import {db, storage} from '../firebase';
 import {Button, Form, FormGroup} from 'react-bootstrap';
 import {useAuth} from '../context/AuthContext'
 import { useState } from 'react';
+import {useHistory} from 'react-router-dom'
 
 
 function CadastroEntidades() {
   const {currentUser}=useAuth();
   const [loading,setLoading]=useState(false)
+  const history=useHistory();
 
   async function handleSubmit (e){
     e.preventDefault()
@@ -45,7 +47,6 @@ function CadastroEntidades() {
       user: currentUser.uid
     }
     try{
-      console.log(entidade)
       let {id} = await db.collection("entidades").add(entidade)
       if(form.foto.files[0]){
         let urlPath="imgEntidades/"+id+form.foto.files[0].name.match(/\..*$/)
@@ -53,8 +54,9 @@ function CadastroEntidades() {
           .child(urlPath)
           .put(form.foto.files[0])
         const downloadUrl=await uploadTest.ref.getDownloadURL()
-        db.collection("entidades").doc(id).update({downloadUrl: downloadUrl, urlPath: urlPath})
+        await db.collection("entidades").doc(id).update({downloadUrl: downloadUrl, urlPath: urlPath})
       }
+      history.push("/perfil?id="+id)
     }catch(error){
       console.log(error)
     }

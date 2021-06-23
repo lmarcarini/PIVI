@@ -1,5 +1,5 @@
 import React from 'react'
-import { Nav, Navbar } from 'react-bootstrap'
+import { Nav, Navbar, NavDropdown } from 'react-bootstrap'
 import NavbarCollapse from 'react-bootstrap/esm/NavbarCollapse'
 import NavbarToggle from 'react-bootstrap/esm/NavbarToggle'
 import { useHistory } from 'react-router'
@@ -34,34 +34,36 @@ export default function TopMenu() {
                         <LinkContainer to="/">
                             <Nav.Link>Home</Nav.Link>
                         </LinkContainer>
-                        {currentUser && 
-                            <>
-                            <LinkContainer to="/cadastrarentidade">
-                                <Nav.Link>Criar entidade</Nav.Link>
-                            </LinkContainer>
-                            <LinkContainer to="/minhasentidades">
-                                <Nav.Link>Gerenciar entidades</Nav.Link>
-                            </LinkContainer>
-                            </>
-                        }
                     </Nav>
+                    <Nav className="ml-auto">
+                        {currentUser && 
+                            <NavDropdown title="Minhas entidades" id="basic-nav-dropdown" alignRight>
+                                <LinkContainer to="/minhasentidades">
+                                    <NavDropdown.Item>Gerenciar</NavDropdown.Item>
+                                </LinkContainer>
+                                <LinkContainer to="/cadastrarentidade">
+                                    <NavDropdown.Item>Cadastrar</NavDropdown.Item>
+                                </LinkContainer>
+                            </NavDropdown>
+                        }
                         {currentUser ? 
-                                <Nav className="ml-auto">
+                                <NavDropdown title="Conta" id="collapsable-nav-dropdown" alignRight >
                                     <LinkContainer to="/editarconta">
-                                        <Nav.Link>Editar conta</Nav.Link>
+                                        <NavDropdown.Item>Editar </NavDropdown.Item>
                                     </LinkContainer>
-                                    <Nav.Link onClick={onLogout}>Sair da Conta</Nav.Link>
-                                </Nav>
+                                    <NavDropdown.Item onClick={onLogout}>Sair da Conta</NavDropdown.Item>
+                                </NavDropdown>
                             :
-                            <Nav className="ml-auto">
+                            <NavDropdown title="Conta" id="collapsable-nav-dropdown" alignRight >
                                 <LinkContainer to="/login">
                                     <Nav.Link>Conectar</Nav.Link>
                                 </LinkContainer>
                                 <LinkContainer to="/signup">
                                     <Nav.Link>Criar Conta</Nav.Link>
                                 </LinkContainer>
-                            </Nav>
+                            </NavDropdown>
                         }
+                    </Nav>
                 </NavbarCollapse>
             </Navbar>
         </>

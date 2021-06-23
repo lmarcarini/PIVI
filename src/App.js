@@ -11,6 +11,7 @@ import TopMenu from "./components/TopMenu";
 import CadastroEntidades from "./components/CadastroEntidades"
 import EditarCadastroEntidades from "./components/EditarCadastroEntidades";
 import ListaEntidades from "./components/ListaEntidades";
+import PerfilEntidade from "./components/PerfilEntidade";
 
 
 
@@ -31,6 +32,7 @@ function App() {
                     <Route path="/cadastrarentidade" component={CadastroEntidades}/>
                     <Route path="/editarentidade" component={EditarCadastroEntidades}/>
                     <Route path="/minhasentidades" component={ListaEntidades}/>
+                    <Route path="/perfil" component={PerfilEntidade}/>
                   </Switch>
             </div>
           </Container>

@@ -1,21 +1,22 @@
 import React, { useEffect, useState } from 'react'
 import {db} from '../firebase'
-import { Button, Container, Jumbotron } from 'react-bootstrap'
-
+import { Container, Jumbotron } from 'react-bootstrap'
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faHeart } from '@fortawesome/free-solid-svg-icons'
+import { Link } from 'react-router-dom'
+import {useAuth} from '../context/AuthContext'
 
 export default function JumbotronDescubra() {
-
-    const [entidade,setEntidade]=useState({
-        nome: ""
-    })
+    const {currentUser} = useAuth()
+    const [entidade,setEntidade]=useState({})
 
     const getNovaEntidade=()=>{
         db.collection("entidades").limit(10).get().then((querySnapshot) => {
             var entidades=[]
             querySnapshot.forEach(doc=>{
-                entidades.push({
-                    nome: doc.get("nome")
-                })
+                var entidade=doc.data()
+                entidade.id=doc.id
+                entidades.push(entidade)
             })
             if(entidades.length===0){
                 console.log("Nenhum carregado")
@@ -31,20 +32,29 @@ export default function JumbotronDescubra() {
 
     function curtir (e){
         e.preventDefault()
-        db.collection("usuarios/id/curtida").doc("idEntidade").set({
+        db.collection("usuarios/"+currentUser.id+"/curtida").doc(entidade.id).set({
             curtida: true
         })
     }
 
     return (
-        <Jumbotron fluid>
-            <Container>
-                <h1>{entidade.nome}</h1>
-                <p>
-                Espaço reservado para descrição básica da entidade.
-                </p>
-                <Button onClick={curtir}>Curtir</Button>
-            </Container>
+        <>
+        <Jumbotron fluid 
+        style={{
+            backgroundImage: `url(${entidade.downloadUrl})`,
+            height:"256px",
+            backgroundRepeat:"no-repeat",
+            backgroundPosition:"center",
+            backgroundSize:"100%"}}>
         </Jumbotron>
+        <Container>
+            <h6>Você conhece essa instituição? <FontAwesomeIcon icon={faHeart} size="lg" onClick={curtir}/></h6>
+            <h1>{entidade.nome || ""}</h1>
+            <p>
+            {entidade.descricao || ""}
+            </p>
+            <Link to={'/perfil?id='+entidade.id}>Mais informações aqui</Link>
+        </Container>
+        </>
     )
 }

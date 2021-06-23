@@ -9,8 +9,8 @@ function useQuery() {
 }
 
 function EditarCadastroEntidades() {
-  let query = useQuery();
-  const [id,setId]=useState("")
+  let query = useQuery()
+  const id=query.get("id")
   const [idExists,setIdExists]=useState(false)
   const [loading,setLoading]=useState(false)
   const [entidade,setEntidade]=useState({
@@ -44,17 +44,14 @@ function EditarCadastroEntidades() {
   })
 
   useEffect(()=>{
-    let id=query.get("id")
-    
     if(id) {
-      setId(id)
       db.collection("entidades").doc(id).get().then(doc=>{
       if(doc.exists) {
         setIdExists(true)
         setEntidade(doc.data())
       }
     })}
-  },[query])
+  },[id])
 
   async function handleSubmit (e){
     e.preventDefault()
