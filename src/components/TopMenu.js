@@ -47,19 +47,19 @@ export default function TopMenu() {
                             </NavDropdown>
                         }
                         {currentUser ? 
-                                <NavDropdown title="Conta" id="collapsable-nav-dropdown" alignRight >
-                                    <LinkContainer to="/editarconta">
-                                        <NavDropdown.Item>Editar </NavDropdown.Item>
-                                    </LinkContainer>
-                                    <NavDropdown.Item onClick={onLogout}>Sair da Conta</NavDropdown.Item>
-                                </NavDropdown>
+                            <NavDropdown title="Conta" id="collapsable-nav-dropdown" alignRight >
+                                <LinkContainer to="/editarconta">
+                                    <NavDropdown.Item>Editar </NavDropdown.Item>
+                                </LinkContainer>
+                                <NavDropdown.Item onClick={onLogout}>Sair da Conta</NavDropdown.Item>
+                            </NavDropdown>
                             :
                             <NavDropdown title="Conta" id="collapsable-nav-dropdown" alignRight >
                                 <LinkContainer to="/login">
-                                    <Nav.Link>Conectar</Nav.Link>
+                                    <NavDropdown.Item>Conectar</NavDropdown.Item>
                                 </LinkContainer>
                                 <LinkContainer to="/signup">
-                                    <Nav.Link>Criar Conta</Nav.Link>
+                                    <NavDropdown.Item>Criar Conta</NavDropdown.Item>
                                 </LinkContainer>
                             </NavDropdown>
                         }

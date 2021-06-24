@@ -12,8 +12,9 @@ function ListaEntidades() {
     const {currentUser} = useAuth()
 
     const getNovaEntidade=()=>{
+        console.log(currentUser)
         db.collection("entidades")
-        .where("user", "==", currentUser.id)
+        .where("user", "==", currentUser.uid)
         .get().then((querySnapshot) => {
             var entidades=[]
             querySnapshot.forEach(doc=>{

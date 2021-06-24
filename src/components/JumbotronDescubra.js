@@ -32,7 +32,7 @@ export default function JumbotronDescubra() {
 
     function curtir (e){
         e.preventDefault()
-        db.collection("usuarios/"+currentUser.id+"/curtida").doc(entidade.id).set({
+        db.collection("usuarios/"+currentUser.uid+"/curtida").doc(entidade.id).set({
             curtida: true
         })
     }
