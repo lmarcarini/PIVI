@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import ListGroup from 'react-bootstrap/ListGroup'
 import { LinkContainer } from 'react-router-bootstrap'
 import { db } from '../firebase'
@@ -11,24 +11,22 @@ function ListaEntidades() {
     const [entidades,setEntidades]=useState([])
     const {currentUser} = useAuth()
 
-    const getNovaEntidade=()=>{
-        console.log(currentUser)
-        db.collection("entidades")
+    const getNovaEntidade=useCallback(async ()=>{
+        const querySnapshot = await db.collection("entidades")
         .where("user", "==", currentUser.uid)
-        .get().then((querySnapshot) => {
-            var entidades=[]
-            querySnapshot.forEach(doc=>{
-                let temp=doc.data()
-                temp.id=doc.id
-                entidades.push(temp)
-            })
-            setEntidades(entidades)
-         })
-    }
+        .get()
+        var entidades=[]
+        querySnapshot.forEach(doc=>{
+            let temp=doc.data()
+            temp.id=doc.id
+            entidades.push(temp)
+        })
+        setEntidades(entidades)
+    },[currentUser.uid])
 
     useEffect(()=>
         getNovaEntidade()
-        ,[])
+        ,[getNovaEntidade])
 
     async function onDelete(e){
         e.preventDefault()

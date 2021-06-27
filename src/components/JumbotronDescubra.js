@@ -1,60 +1,53 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import {db} from '../firebase'
 import { Container, Jumbotron } from 'react-bootstrap'
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faHeart } from '@fortawesome/free-solid-svg-icons'
 import { Link } from 'react-router-dom'
-import {useAuth} from '../context/AuthContext'
+import CurtirBotao from './CurtirBotao'
+
 
 export default function JumbotronDescubra() {
-    const {currentUser} = useAuth()
-    const [entidade,setEntidade]=useState({})
+    const [entidades,setEntidades]=useState([])
+    const [current,setCurrent]=useState(0)
 
-    const getNovaEntidade=()=>{
-        db.collection("entidades").limit(10).get().then((querySnapshot) => {
-            var entidades=[]
-            querySnapshot.forEach(doc=>{
-                var entidade=doc.data()
-                entidade.id=doc.id
-                entidades.push(entidade)
-            })
-            if(entidades.length===0){
-                console.log("Nenhum carregado")
-            }else{
-                setEntidade(entidades[Math.floor(Math.random() * entidades.length)]||"Erro ao carregar")
-            }
-         })
-    }
+
+    const getNovaEntidade=useCallback(async ()=>{
+        const querySnapshot=await db.collection("entidades").get()
+        let entidades=querySnapshot.docs.map(doc=>{
+            let entidade=doc.data()
+            entidade.id=doc.id
+            return entidade
+        })
+        setCurrent(Math.floor(Math.random() * entidades.length | 0))
+        setEntidades(entidades)
+    },[])
 
     useEffect(()=>
         getNovaEntidade()
-        ,[])
+        ,[getNovaEntidade])
 
-    function curtir (e){
-        e.preventDefault()
-        db.collection("usuarios/"+currentUser.uid+"/curtida").doc(entidade.id).set({
-            curtida: true
-        })
-    }
+    const imgStyle={
+        backgroundImage: `url(${entidades[current]?.downloadUrl})`,
+        height:"256px",
+        backgroundRepeat:"no-repeat",
+        backgroundPosition:"center",
+        backgroundSize:"100%"}
 
     return (
         <>
-        <Jumbotron fluid 
-        style={{
-            backgroundImage: `url(${entidade.downloadUrl})`,
-            height:"256px",
-            backgroundRepeat:"no-repeat",
-            backgroundPosition:"center",
-            backgroundSize:"100%"}}>
-        </Jumbotron>
-        <Container>
-            <h6>Você conhece essa instituição? <FontAwesomeIcon icon={faHeart} size="lg" onClick={curtir}/></h6>
-            <h1>{entidade.nome || ""}</h1>
+   
+        {entidades[current]?.downloadUrl && 
+            <Jumbotron fluid style={imgStyle}/>
+        }
+        <Container className="mt-3">
+            <h6>Você conhece essa instituição? <CurtirBotao entidadeId={entidades[current]?.id || 0} /></h6>
+            <h1>{entidades[current]?.nomeExibicao || ""}</h1>
             <p>
-            {entidade.descricao || ""}
+            {entidades[current]?.descricao || ""}
             </p>
-            <Link to={'/perfil?id='+entidade.id}>Mais informações aqui</Link>
+            <Link to={'/perfil?id='+entidades[current]?.id}>Mais informações aqui</Link>
         </Container>
+
+        
         </>
     )
 }

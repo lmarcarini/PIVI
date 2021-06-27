@@ -34,6 +34,11 @@ export default function TopMenu() {
                         <LinkContainer to="/">
                             <Nav.Link>Home</Nav.Link>
                         </LinkContainer>
+                        {currentUser && 
+                        <LinkContainer to="/favoritos">
+                            <Nav.Link>Favoritos</Nav.Link>
+                        </LinkContainer>
+                        }
                     </Nav>
                     <Nav className="ml-auto">
                         {currentUser && 

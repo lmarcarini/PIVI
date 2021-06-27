@@ -7,6 +7,7 @@ import emailLogo from '../social/email_64px.png'
 import { Row } from 'react-bootstrap'
 import { useLocation } from 'react-router'
 import { db } from '../firebase'
+import CurtirBotao from './CurtirBotao'
 
 function useQuery() {
     return new URLSearchParams(useLocation().search);
@@ -21,7 +22,9 @@ export default function PerfilEntidade() {
         if(id) {
           db.collection("entidades").doc(id).get().then(doc=>{
           if(doc.exists) {
-            setEntidade(doc.data())
+            let temp=doc.data();
+            temp.id=doc.id
+            setEntidade(temp)
           }
         })}
       },[id])
@@ -41,7 +44,7 @@ export default function PerfilEntidade() {
             marginBottom:"10px"}}>
         </div>
         }
-        <h1>{entidade.nomeExibicao || "Carregando"}</h1>
+        <h1>{entidade.nomeExibicao || "Carregando"} {entidade.nome && <CurtirBotao entidadeId={entidade.id}/>}</h1>
         <p>{entidade.descricao || ""}</p>
         {entidade.contribuicao && <>
             <h4>
